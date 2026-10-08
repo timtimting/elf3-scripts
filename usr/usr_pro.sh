@@ -3,7 +3,7 @@
 set -o pipefail
 
 PASSWORD="Bxi12345go"
-SCRIPT_MODIFIED_DATE="2026-07-07"
+SCRIPT_MODIFIED_DATE="2026-09-26"
 SERVICE_NAME="ros_elf_launch.service"
 SERVICE_TARGET_FILE="/etc/systemd/system/$SERVICE_NAME"
 SERVICE_STOP_TIMEOUT="20s"
@@ -219,6 +219,27 @@ PACKAGE_FILE="${PACKAGE_URL##*/}"
 
 run_step "preflight checks" preflight_checks
 
+# Derive ROS_DOMAIN_ID from the short hostname, before changing the service.
+if current_hostname=$(hostname); then
+    echo "read hostname success"
+else
+    error_exit "read hostname"
+fi
+echo "当前主机名是：$current_hostname"
+
+short_hostname="${current_hostname%%.*}"
+if [[ "$short_hostname" =~ ([0-9]+)$ ]]; then
+    current_elf3_id="${BASH_REMATCH[1]}"
+else
+    error_exit "read host id from hostname $current_hostname"
+fi
+echo "read host id success"
+echo "当前主机id是：$current_elf3_id"
+
+ros_domain_id=$((10#$current_elf3_id + 30))
+echo "calculate ROS_DOMAIN_ID success"
+echo "ROS_DOMAIN_ID是：$ros_domain_id"
+
 # Stop and remove the old auto-start service before replacing the package.
 stop_service_if_installed "$SERVICE_NAME"
 sudo_step "remove old $SERVICE_NAME" rm -f "$SERVICE_TARGET_FILE"
@@ -231,25 +252,6 @@ run_step "enter workspace" cd "$WORKSPACE_DIR"
 
 run_step "download and verify $PACKAGE_FILE" download_package
 run_step "extract and verify $PACKAGE_FILE" extract_package
-
-# Derive ROS_DOMAIN_ID from the numeric suffix of the hostname.
-if current_hostname=$(hostname); then
-    echo "read hostname success"
-else
-    error_exit "read hostname"
-fi
-echo "当前主机名是：$current_hostname"
-
-current_elf3_id=$(echo "$current_hostname" | grep -oE '[0-9]+$')
-if [ -z "$current_elf3_id" ]; then
-    error_exit "read host id from hostname $current_hostname"
-fi
-echo "read host id success"
-echo "当前主机id是：$current_elf3_id"
-
-ros_domain_id=$((current_elf3_id + 30))
-echo "calculate ROS_DOMAIN_ID success"
-echo "ROS_DOMAIN_ID是：$ros_domain_id"
 
 run_step "enter project directory" cd "$PROJECT_DIR"
 

@@ -1,0 +1,33 @@
+# CMake / ROS 构建产物
+build/
+install/
+log/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+
+# 运行日志、下载临时文件及软件包
+*.log
+*.tmp
+*.download
+bxi_rl_controller_ros2_example*.tar.gz
+
+# 编辑器备份及系统临时文件
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Codex / Agents 本地配置与指令文件（含子目录）
+.codex/
+.agents/
+AGENTS.md
+AGENTS.override.md
+agents.md
+agents.override.md
+CODEX.md
+codex.md
